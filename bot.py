@@ -226,14 +226,6 @@ def quote_payload(idx: int, text: str) -> dict:
     return payload
 
 
-def is_manager(interaction: discord.Interaction) -> bool:
-    return (
-        interaction.user == interaction.guild.owner
-        or interaction.user.guild_permissions.administrator
-        or interaction.user.guild_permissions.manage_messages
-    )
-
-
 async def quote_autocomplete(interaction: discord.Interaction, current: str):
     """关键词输入框的自动补全: 把语录列出来点选, 不用记原文。"""
     quotes = load_quotes()
@@ -299,12 +291,9 @@ async def leave_voice(interaction: discord.Interaction):
     await interaction.response.send_message("走啦, 想听语录再喊我~")
 
 
-@tree.command(name="说", description="让 bot 在语音频道说一句话 (仅服主/管理员)")
+@tree.command(name="说", description="让 bot 在语音频道说一句话")
 @app_commands.describe(内容="要它说的话")
 async def say_text(interaction: discord.Interaction, 内容: str):
-    if not is_manager(interaction):
-        await interaction.response.send_message("这个只有服主/管理员能用哦, 不然谁都能让它乱说话啦", ephemeral=True)
-        return
     await interaction.response.defer()
     vc = await ensure_voice(interaction)
     if vc is None:
@@ -321,12 +310,9 @@ async def say_text(interaction: discord.Interaction, 内容: str):
         await interaction.followup.send(f"语音没放出来: {type(e).__name__}: {e}", ephemeral=True)
 
 
-@tree.command(name="加语录", description="加一条康神语录 (服主/管理员)")
+@tree.command(name="加语录", description="加一条康神语录")
 @app_commands.describe(内容="语录原文, 不用加引号")
 async def add_quote(interaction: discord.Interaction, 内容: str):
-    if not is_manager(interaction):
-        await interaction.response.send_message("这个只有服主/管理员能用哦", ephemeral=True)
-        return
     text = 内容.strip()
     if not text:
         return
@@ -336,15 +322,12 @@ async def add_quote(interaction: discord.Interaction, 内容: str):
         return
     quotes.append(text)
     save_quotes(quotes)
-    await interaction.response.send_message(embed=quote_embed(text, len(quotes) - 1, len(quotes)))
+    await interaction.response.send_message(embed=quote_embed(text, len(quotes) - 1, len(quotes)), silent=True)
 
 
-@tree.command(name="删语录", description="按编号删一条语录 (服主/管理员)")
+@tree.command(name="删语录", description="按编号删一条语录")
 @app_commands.describe(编号="在 /语录列表 里看到的编号, 从 1 开始")
 async def delete_quote(interaction: discord.Interaction, 编号: int):
-    if not is_manager(interaction):
-        await interaction.response.send_message("这个只有服主/管理员能用哦", ephemeral=True)
-        return
     quotes = load_quotes()
     if not (1 <= 编号 <= len(quotes)):
         await interaction.response.send_message(f"编号不对, 现在只有 1–{len(quotes)}", ephemeral=True)
