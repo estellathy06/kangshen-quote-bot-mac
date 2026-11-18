@@ -1,0 +1,6 @@
+discord.py[voice]>=2.3
+davey>=0.1.0,<0.2.0
+edge-tts>=7.0
+PyNaCl>=1.5
+certifi>=2024.0
+imageio-ffmpeg>=0.5
